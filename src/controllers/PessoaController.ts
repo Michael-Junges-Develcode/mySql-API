@@ -63,10 +63,40 @@ class PessoaController {
   static async deletePerson(req: Request, res: Response) {
     const { id } = req.params;
     try {
-        await database.Pessoas.destroy({ where: { id: Number(id) } });
-        return res.json(`Successfully deleted person with ID ${id}`)
+      await database.Pessoas.destroy({ where: { id: Number(id) } });
+      return res.json(`Successfully deleted person with ID ${id}`);
     } catch (e) {
-        return res.status(500).json(e)
+      return res.status(500).json(e);
+    }
+  }
+
+  static async getMatricula(req: Request, res: Response) {
+    try {
+      const { estudanteId, matriculaId } = req.params;
+      const person = await database.Matriculas.findOne({
+        where: { id: Number(matriculaId), estudante_id: Number(estudanteId) },
+      });
+      return res.json(person);
+    } catch (e: any) {
+      return res.status(500).json(e.message);
+    }
+  }
+
+  static async createMatricula(req: Request, res: Response) {
+    const { estudanteId } = req.params;
+    const body = { ...req.body, estudante_id: Number(estudanteId) };
+    const exists = await database.Pessoas.findOne({
+      where: { email: req.body.email },
+    });
+    if (!exists) {
+      try {
+        const matrícula = await database.Pessoas.create(body);
+        return res.json(matrícula);
+      } catch (e) {
+        return res.status(500).json(e);
+      }
+    } else {
+      return res.status(500).json("Email already exists");
     }
   }
 }
